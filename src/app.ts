@@ -75,11 +75,36 @@ const aiFlow = addKeyword(EVENTS.ACTION)
 
         }
     )
+
+const gastos = addKeyword('GastosBot')
+        .addAnswer('Hola, Bienvenido a gastos')
+        .addAnswer('Nombre de tu gasto?')
+        .addAction({capture:true}, async (ctx, {flowDynamic, state}) =>{
+          await flowDynamic(`El nombre de tu gasto es: ${ctx.body}`)
+          await state.update({name: ctx.body})
+        })
+        .addAnswer('Monto de tu gasto?')
+        .addAction({capture:true}, async (ctx, {flowDynamic, state}) =>{
+          await flowDynamic(`Monto: ${ctx.body}`)
+          await state.update({amount: ctx.body})
+        })
+        .addAnswer('Categoria de tu gasto?')
+        .addAction({capture:true}, async (ctx, {flowDynamic, state}) =>{
+          await flowDynamic(`Categoria del gasto: ${ctx.body}`)
+          await state.update({category: ctx.body})
+        })
+        .addAnswer('Gracias, tus gastos fueron registrados', null,
+          async (_, {state}) =>{
+            console.log(state.get('name'))
+            console.log(state.get('amount'))
+            console.log(state.get('category'))
+          }
+        )
         
 
 
 const main = async () => {
-  const adapterFlow = createFlow([welcomeFlow, menuFlow ,aiFlow]);
+  const adapterFlow = createFlow([welcomeFlow, menuFlow ,aiFlow, gastos]);
 
   const adapterProvider = createProvider(Provider);
   const adapterDB = new Database();
