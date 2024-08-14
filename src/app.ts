@@ -10,7 +10,8 @@ import {
 import { MemoryDB as Database } from "@builderbot/bot";
 import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 
-import {runCompletion} from './ai.js'
+import { runCompletion } from "./ai.js";
+import { appendToSheet, readSheet } from "../utils.js";
 
 const PORT = process.env.PORT ?? 3008;
 
@@ -51,60 +52,87 @@ const menuFlow = addKeyword(EVENTS.ACTION)
     switch (ctx.body) {
       case "1":
         return await flowDynamic([
-          { body: "Seleccionaste Monofasica, precio:2000, podes consultar: wwww.verlink.com", media: "https://www.compraensanjuan.com/fotos_servicios/1280229_1.jpg" },
+          {
+            body: "Seleccionaste Monofasica, precio:2000, podes consultar: wwww.verlink.com",
+            media:
+              "https://www.compraensanjuan.com/fotos_servicios/1280229_1.jpg",
+          },
         ]);
       case "2":
         return await flowDynamic([
-          { body: "Seleccionaste Monofasica doble, precio:20000, podes consultar: wwww.verlink.com", media: "https://www.compraensanjuan.com/fotos_servicios/1280229_1.jpg" },
+          {
+            body: "Seleccionaste Monofasica doble, precio:20000, podes consultar: wwww.verlink.com",
+            media:
+              "https://www.compraensanjuan.com/fotos_servicios/1280229_1.jpg",
+          },
         ]);
       case "3":
         return await flowDynamic([
-          { body: "Seleccionaste Trifasica, precio:20000, podes consultar: wwww.verlink.com", media: "https://www.compraensanjuan.com/fotos_servicios/1280229_1.jpg" },
+          {
+            body: "Seleccionaste Trifasica, precio:20000, podes consultar: wwww.verlink.com",
+            media:
+              "https://www.compraensanjuan.com/fotos_servicios/1280229_1.jpg",
+          },
         ]);
     }
   });
 
-const aiFlow = addKeyword(EVENTS.ACTION)
-        .addAnswer("Haz tu consulta: ",
-        {capture:true},
-        async (cnx, {flowDynamic}) => {
-            const prompt = 'Tu eres un asistente que vende autos usado y no sabes hacer nada mas, solo responde a eso'
-            const consulta = cnx.body
-            const answer = await runCompletion(prompt, consulta)
-            return await flowDynamic(answer)
+const aiFlow = addKeyword(EVENTS.ACTION).addAnswer(
+  "Haz tu consulta: ",
+  { capture: true },
+  async (cnx, { flowDynamic }) => {
+    const prompt =
+      "Tu eres un asistente que vende autos usado y no sabes hacer nada mas, solo responde a eso";
+    const consulta = cnx.body;
+    const answer = await runCompletion(prompt, consulta);
+    return await flowDynamic(answer);
+  }
+);
 
+const gastos = addKeyword("GastosBot")
+  .addAnswer("Hola, Bienvenido a gastos")
+  .addAnswer("Nombre de tu gasto?")
+  .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
+    await state.update({ name: ctx.body });
+    const name = await state.get("name");
+    await flowDynamic(`El nombre de tu gasto es: ${name}`);
+  })
+  .addAnswer("Monto de tu gasto?")
+  .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
+    await state.update({ amount: ctx.body });
+    const amount = await state.get("amount");
+    await flowDynamic(`Monto: ${amount}`);
+  })
+  .addAnswer("Categoria de tu gasto?")
+  .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
+    await state.update({ category: ctx.body });
+    const category = await state.get("category");
+    await flowDynamic(`Categoría: ${category}`);
+  })
+  .addAction(null, async (_, { state, flowDynamic }) => {
+    await flowDynamic("Gracias, tus datos fueron registrados");
+    const name = await state.get("name");
+    const amount = await state.get("amount");
+    const category = await state.get("category");
+    await appendToSheet([[name, amount, category]]);
+  });
+
+  const gastosHistory = addKeyword("GastosHistory")
+      .addAnswer('Dime que quieres saber de tus gastos?')
+      .addAction({capture:true}, 
+        async (ctx, {flowDynamic}) => {
+          const gastos = await readSheet('Sheet1!A1:C10')
+          const prompt =
+          "Tu eres un asistente financiero que tienes mis datos y no respondes nada que no este en el contexto, te voy a hacer preguntas sobre eso";
+          const consulta = ctx.body + '\nMis gastos son' + gastos;
+          const answer = await runCompletion(prompt, consulta);
+          await flowDynamic(answer)
         }
-    )
-
-const gastos = addKeyword('GastosBot')
-        .addAnswer('Hola, Bienvenido a gastos')
-        .addAnswer('Nombre de tu gasto?')
-        .addAction({capture:true}, async (ctx, {flowDynamic, state}) =>{
-          await flowDynamic(`El nombre de tu gasto es: ${ctx.body}`)
-          await state.update({name: ctx.body})
-        })
-        .addAnswer('Monto de tu gasto?')
-        .addAction({capture:true}, async (ctx, {flowDynamic, state}) =>{
-          await flowDynamic(`Monto: ${ctx.body}`)
-          await state.update({amount: ctx.body})
-        })
-        .addAnswer('Categoria de tu gasto?')
-        .addAction({capture:true}, async (ctx, {flowDynamic, state}) =>{
-          await flowDynamic(`Categoria del gasto: ${ctx.body}`)
-          await state.update({category: ctx.body})
-        })
-        .addAnswer('Gracias, tus gastos fueron registrados', null,
-          async (_, {state}) =>{
-            console.log(state.get('name'))
-            console.log(state.get('amount'))
-            console.log(state.get('category'))
-          }
-        )
-        
+      )
 
 
 const main = async () => {
-  const adapterFlow = createFlow([welcomeFlow, menuFlow ,aiFlow, gastos]);
+  const adapterFlow = createFlow([welcomeFlow, menuFlow, aiFlow, gastos, gastosHistory]);
 
   const adapterProvider = createProvider(Provider);
   const adapterDB = new Database();
