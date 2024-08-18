@@ -11,7 +11,9 @@ import { MemoryDB as Database } from "@builderbot/bot";
 import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 
 import { runCompletion } from "./ai.js";
+import { assistantOpenai } from "./assistantOpenai.js";
 import { appendToSheet, readSheet } from "../utils.js";
+import { log } from "console";
 
 const PORT = process.env.PORT ?? 3008;
 
@@ -117,22 +119,39 @@ const gastos = addKeyword("GastosBot")
     await appendToSheet([[name, amount, category]]);
   });
 
-  const gastosHistory = addKeyword("GastosHistory")
-      .addAnswer('Dime que quieres saber de tus gastos?')
-      .addAction({capture:true}, 
-        async (ctx, {flowDynamic}) => {
-          const gastos = await readSheet('Sheet1!A1:C10')
-          const prompt =
-          "Tu eres un asistente financiero que tienes mis datos y no respondes nada que no este en el contexto, te voy a hacer preguntas sobre eso";
-          const consulta = ctx.body + '\nMis gastos son' + gastos;
-          const answer = await runCompletion(prompt, consulta);
-          await flowDynamic(answer)
-        }
-      )
+const gastosHistory = addKeyword("GastosHistory")
+  .addAnswer("Dime que quieres saber de tus gastos?")
+  .addAction({ capture: true }, async (ctx, { flowDynamic }) => {
+    const gastos = await readSheet("Sheet1!A1:C10");
+    const prompt =
+      "Tu eres un asistente financiero que tienes mis datos y no respondes nada que no este en el contexto, te voy a hacer preguntas sobre eso";
+    const consulta = ctx.body + "\nMis gastos son" + gastos;
+    const answer = await runCompletion(prompt, consulta);
+    await flowDynamic(answer);
+  });
 
+const assistant = addKeyword("Assistant")
+  .addAnswer([
+    "Bienvenido a VioAI Restaurant",
+    "Puedes preguntar cualquiero cosa sobre el menu?",
+    "Ej: Que opciones con veganas tienes?",
+  ])
+  .addAction({ capture: true }, async (ctx, { flowDynamic }) => {
+    const mensaje = ctx.body;
+    const answer = await assistantOpenai(mensaje);
+    console.log(answer);
+    await flowDynamic(answer);
+  });
 
 const main = async () => {
-  const adapterFlow = createFlow([welcomeFlow, menuFlow, aiFlow, gastos, gastosHistory]);
+  const adapterFlow = createFlow([
+    welcomeFlow,
+    menuFlow,
+    aiFlow,
+    gastos,
+    gastosHistory,
+    assistant,
+  ]);
 
   const adapterProvider = createProvider(Provider);
   const adapterDB = new Database();
