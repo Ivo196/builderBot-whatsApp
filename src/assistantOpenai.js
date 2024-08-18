@@ -10,6 +10,7 @@ const openai = new OpenAI({
     apiKey: api
 })
 
+
 async function thread() {
     const thread = await openai.beta.threads.create() 
 }
