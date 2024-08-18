@@ -6,7 +6,6 @@ const auth = new google.auth.GoogleAuth({
     keyFile: './google.json',  // Path to your service account key file.
     scopes: ['https://www.googleapis.com/auth/spreadsheets']  // Scope for Google Sheets API.
 });
-
 const spreadsheetId = '1GsYujw78rUevgprsvY304mhFRsddq1eeh-PkJd5AyMs';
 
 export async function appendToSheet(values) {
