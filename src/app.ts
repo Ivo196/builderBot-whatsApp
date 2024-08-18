@@ -13,7 +13,6 @@ import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 import { runCompletion } from "./ai.js";
 import { assistantOpenai } from "./assistantOpenai.js";
 import { appendToSheet, readSheet } from "./utils.js";
-import { log } from "console";
 
 const PORT = process.env.PORT ?? 3008;
 
