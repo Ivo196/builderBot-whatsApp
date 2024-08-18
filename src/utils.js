@@ -1,6 +1,6 @@
 
 import { google } from 'googleapis';
-import { sheets } from 'googleapis/build/src/apis/sheets';
+import { sheets } from 'googleapis/build/src/apis/sheets/index.js';
 // Initializes the Google APIs client library and sets up the authentication using service account credentials.
 const auth = new google.auth.GoogleAuth({
     keyFile: './google.json',  // Path to your service account key file.
