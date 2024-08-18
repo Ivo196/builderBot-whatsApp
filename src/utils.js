@@ -4,10 +4,10 @@ import { sheets } from 'googleapis/build/src/apis/sheets/index.js';
 import {config} from 'dotenv'
 config()
 
-const googleCredentials = JSON.parse(process.env.GOOGLE_JSON)
+console.log(process.env.GOOGLE_JSON)
 // Initializes the Google APIs client library and sets up the authentication using service account credentials.
 const auth = new google.auth.GoogleAuth({
-    keyFile: googleCredentials,  // Path to your service account key file.
+    keyFile: './google.json',  // Path to your service account key file.
     scopes: ['https://www.googleapis.com/auth/spreadsheets']  // Scope for Google Sheets API.
 });
 const spreadsheetId = '1GsYujw78rUevgprsvY304mhFRsddq1eeh-PkJd5AyMs';

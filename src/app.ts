@@ -12,7 +12,7 @@ import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 
 import { runCompletion } from "./ai.js";
 import { assistantOpenai } from "./assistantOpenai.js";
-import { appendToSheet, readSheet } from "./utils.js";
+// import { appendToSheet, readSheet } from "./utils.js";
 
 const PORT = process.env.PORT ?? 3008;
 
@@ -90,44 +90,44 @@ const aiFlow = addKeyword(EVENTS.ACTION).addAnswer(
   }
 );
 
-const gastos = addKeyword("GastosBot")
-  .addAnswer("Hola, Bienvenido a gastos")
-  .addAnswer("Nombre de tu gasto?")
-  .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
-    await state.update({ name: ctx.body });
-    const name = await state.get("name");
-    await flowDynamic(`El nombre de tu gasto es: ${name}`);
-  })
-  .addAnswer("Monto de tu gasto?")
-  .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
-    await state.update({ amount: ctx.body });
-    const amount = await state.get("amount");
-    await flowDynamic(`Monto: ${amount}`);
-  })
-  .addAnswer("Categoria de tu gasto?")
-  .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
-    await state.update({ category: ctx.body });
-    const category = await state.get("category");
-    await flowDynamic(`Categoría: ${category}`);
-  })
-  .addAction(null, async (_, { state, flowDynamic }) => {
-    await flowDynamic("Gracias, tus datos fueron registrados");
-    const name = await state.get("name");
-    const amount = await state.get("amount");
-    const category = await state.get("category");
-    await appendToSheet([[name, amount, category]]);
-  });
+// const gastos = addKeyword("GastosBot")
+//   .addAnswer("Hola, Bienvenido a gastos")
+//   .addAnswer("Nombre de tu gasto?")
+//   .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
+//     await state.update({ name: ctx.body });
+//     const name = await state.get("name");
+//     await flowDynamic(`El nombre de tu gasto es: ${name}`);
+//   })
+//   .addAnswer("Monto de tu gasto?")
+//   .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
+//     await state.update({ amount: ctx.body });
+//     const amount = await state.get("amount");
+//     await flowDynamic(`Monto: ${amount}`);
+//   })
+//   .addAnswer("Categoria de tu gasto?")
+//   .addAction({ capture: true }, async (ctx, { flowDynamic, state }) => {
+//     await state.update({ category: ctx.body });
+//     const category = await state.get("category");
+//     await flowDynamic(`Categoría: ${category}`);
+//   })
+//   .addAction(null, async (_, { state, flowDynamic }) => {
+//     await flowDynamic("Gracias, tus datos fueron registrados");
+//     const name = await state.get("name");
+//     const amount = await state.get("amount");
+//     const category = await state.get("category");
+//     await appendToSheet([[name, amount, category]]);
+//   });
 
-const gastosHistory = addKeyword("GastosHistory")
-  .addAnswer("Dime que quieres saber de tus gastos?")
-  .addAction({ capture: true }, async (ctx, { flowDynamic }) => {
-    const gastos = await readSheet("Sheet1!A1:C10");
-    const prompt =
-      "Tu eres un asistente financiero que tienes mis datos y no respondes nada que no este en el contexto, te voy a hacer preguntas sobre eso";
-    const consulta = ctx.body + "\nMis gastos son" + gastos;
-    const answer = await runCompletion(prompt, consulta);
-    await flowDynamic(answer);
-  });
+// const gastosHistory = addKeyword("GastosHistory")
+//   .addAnswer("Dime que quieres saber de tus gastos?")
+//   .addAction({ capture: true }, async (ctx, { flowDynamic }) => {
+//     const gastos = await readSheet("Sheet1!A1:C10");
+//     const prompt =
+//       "Tu eres un asistente financiero que tienes mis datos y no respondes nada que no este en el contexto, te voy a hacer preguntas sobre eso";
+//     const consulta = ctx.body + "\nMis gastos son" + gastos;
+//     const answer = await runCompletion(prompt, consulta);
+//     await flowDynamic(answer);
+//   });
 
 const assistant = addKeyword("Assistant")
   .addAnswer([
@@ -147,8 +147,8 @@ const main = async () => {
     welcomeFlow,
     menuFlow,
     aiFlow,
-    gastos,
-    gastosHistory,
+    // gastos,
+    // gastosHistory,
     assistant,
   ]);
 
